@@ -1,0 +1,23 @@
+diff --git a/crypto/algif_aead.c b/crypto/algif_aead.c
+index 7d58cbbce..01e6a7e1d 100644
+--- a/crypto/algif_aead.c
++++ b/crypto/algif_aead.c
+@@ -249,8 +249,7 @@ static int _aead_recvmsg(struct socket *sock, struct msghdr *msg,
+ 			goto free;
+ 
+ 		/* Create TX SGL for tag and chain it to RX SGL. */
+-		areq->tsgl_entries = af_alg_count_tsgl(sk, processed,
+-						       processed - as);
++		areq->tsgl_entries = af_alg_count_tsgl(sk, processed, 0);
+ 		if (!areq->tsgl_entries)
+ 			areq->tsgl_entries = 1;
+ 		areq->tsgl = sock_kmalloc(sk, array_size(sizeof(*areq->tsgl),
+@@ -263,7 +262,7 @@ static int _aead_recvmsg(struct socket *sock, struct msghdr *msg,
+ 		sg_init_table(areq->tsgl, areq->tsgl_entries);
+ 
+ 		/* Release TX SGL, except for tag data and reassign tag data. */
+-		af_alg_pull_tsgl(sk, processed, areq->tsgl, processed - as);
++		af_alg_pull_tsgl(sk, processed, areq->tsgl, 0);
+ 
+ 		/* chain the areq TX SGL holding the tag with RX SGL */
+ 		if (usedpages) {

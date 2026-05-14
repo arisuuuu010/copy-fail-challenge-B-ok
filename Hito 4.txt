@@ -1,0 +1,20 @@
+cat /home/student/hito4.txt> > > > > > > > > > > > 
+$ $ === HITO 4: PARCHE PERMANENTE APLICADO ===
+Fecha: Thu May 14 16:19:08 UTC 2026
+Operador: arisuuuu010
+Kernel: 6.12.0-dirty
+Cmdline: console=ttyS0 quiet hito4=patched
+
+=== Identidad antes/después del intento de exploit ===
+uid=1001(student) gid=1001(student) groups=1001(student)
+student
+
+=== Intento de exploit post-parche ===
+su: Module is unknown
+
+=== Identidad final ===
+uid=1001(student) gid=1001(student) groups=1001(student)
+student
+
+Conclusión: el exploit fue ejecutado en la VM parcheada y no permitió obtener una shell root.
+$ 
