@@ -50,7 +50,18 @@ echo -e "${CYAN}[3/5] Compilando BusyBox estático (~3-5 min)...${NC}"
 make -j"$JOBS" 2>&1 | tail -3
 
 # Verificar que quedó estático
-if ! file busybox | grep -q "statically linked"; then
+if command -v file >/dev/null 2>&1; then
+  STATIC_CHECK=$(file busybox | grep -q "statically linked" && echo yes || echo no)
+elif command -v readelf >/dev/null 2>&1; then
+  STATIC_CHECK=$(readelf -l busybox | grep -q 'INTERP' && echo no || echo yes)
+elif command -v ldd >/dev/null 2>&1; then
+  STATIC_CHECK=$(ldd busybox 2>&1 | grep -q 'not a dynamic executable' && echo yes || echo no)
+else
+  echo -e "${YELLOW}⚠ No hay herramienta disponible para verificar el binario (file/readelf/ldd)."${NC}
+  STATIC_CHECK=no
+fi
+
+if [ "$STATIC_CHECK" != "yes" ]; then
   echo -e "${YELLOW}⚠ BusyBox NO quedó estático. Verificando .config...${NC}"
   grep STATIC .config
   exit 1
