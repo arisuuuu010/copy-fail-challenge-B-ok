@@ -5,7 +5,7 @@ Devcontainer reproducible para experimentar con la vulnerabilidad **Copy Fail**
 
 Esta v2 incorpora todas las correcciones aprendidas en una sesión de debugging
 exhaustiva: opciones de kernel necesarias para que arranque, configuración
-correcta de BusyBox estático, rutas dinámicas independientes del nombre del repo,
+correcta de BusyBox dinámico, rutas dinámicas independientes del nombre del repo,
 y dependencias Ubuntu 24.04 corregidas.
 
 ---
@@ -78,7 +78,7 @@ adjuntos. Los estudiantes ahora pueden hacer `make setup` y descarga en 2 min.
 │   ├── 00_welcome.sh
 │   ├── 01_fetch_kernel.sh     ← descarga del Release
 │   ├── 02_build_kernel.sh     ← fallback: compila desde fuente
-│   ├── 03_build_rootfs.sh     ← BusyBox estático + initramfs
+│   ├── 03_build_rootfs.sh     ← BusyBox dinámico + initramfs
 │   └── 04_run_qemu.sh
 ├── Makefile
 └── README.md
@@ -122,5 +122,5 @@ Esta v2 incorpora los siguientes fixes respecto a la v1:
 - BusyBox: reemplazado `scripts/config` (no existe) por `sed`
 - BusyBox: eliminado `olddefconfig` (no existe en BusyBox)
 - BusyBox: deshabilitado `CONFIG_TC` (rompe compilación con kernels nuevos)
-- BusyBox: forzado `CONFIG_STATIC=y` y verificado con `file`
+- BusyBox: generado dinámicamente y empaquetadas las librerías compartidas necesarias
 - Workflow Actions: greps de verificación con `|| echo`, tolerantes

@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # scripts/03_build_rootfs.sh
-# Construye initramfs con BusyBox estático
+# Construye initramfs con BusyBox dinámico (no estático)
 #
 # Lecciones aprendidas (¡todas críticas!):
 #   - scripts/config NO existe en BusyBox → usar sed
 #   - olddefconfig NO existe en BusyBox → quitarlo
 #   - CONFIG_TC=y rompe la compilación con kernels nuevos → poner =n
-#   - CONFIG_STATIC=y es OBLIGATORIO o nada funciona
+#   - CONFIG_STATIC=y no se usa aquí; se empaquetan libs dinámicas
 #   - make defconfig puede pedir entrada interactiva → usar yes "" pipe
 #   - bzip2 debe estar instalado (manejado en Dockerfile)
 set -euo pipefail
@@ -31,14 +31,15 @@ fi
 
 cd "$BUSYBOX_SRC"
 
-echo -e "${CYAN}[2/5] Configurando BusyBox (static + sin TC)...${NC}"
+echo -e "${CYAN}[2/5] Configurando BusyBox (dinámico + sin TC)...${NC}"
 # yes "" alimenta enter a posibles preguntas interactivas de defconfig
 #yes "" | make defconfig >/dev/null 2>&1
 make defconfig
 
 # CRÍTICO: editar el .config con sed (BusyBox NO tiene scripts/config)
-sed -i 's/# CONFIG_STATIC is not set/CONFIG_STATIC=y/' .config
-grep -q "^CONFIG_STATIC=y" .config || echo "CONFIG_STATIC=y" >> .config
+# Queremos un BusyBox dinámico en lugar de estático.
+sed -i 's/^CONFIG_STATIC=.*/# CONFIG_STATIC is not set/' .config
+sed -i 's/^# CONFIG_STATIC is not set/CONFIG_STATIC=n/' .config
 
 # CONFIG_TC rompe la compilación con kernels nuevos (error en networking/tc.c)
 sed -i 's/^CONFIG_TC=y/CONFIG_TC=n/' .config
@@ -46,21 +47,29 @@ sed -i 's/^CONFIG_FEATURE_TC_INGRESS=y/CONFIG_FEATURE_TC_INGRESS=n/' .config
 
 # NOTA: BusyBox NO tiene "make olddefconfig", se compila directo
 
-echo -e "${CYAN}[3/5] Compilando BusyBox estático (~3-5 min)...${NC}"
+echo -e "${CYAN}[3/5] Compilando BusyBox dinámico (~3-5 min)...${NC}"
 make -j"$JOBS" 2>&1 | tail -3
 
-# Verificar que quedó estático
-if ! file busybox | grep -q "statically linked"; then
-  echo -e "${YELLOW}⚠ BusyBox NO quedó estático. Verificando .config...${NC}"
+# Verificar que quedó dinámico
+if file busybox | grep -q "statically linked"; then
+  echo -e "${YELLOW}⚠ BusyBox quedó estático. Verificando .config...${NC}"
   grep STATIC .config
   exit 1
 fi
-echo -e "${GREEN}  ✓ BusyBox compilado estáticamente${NC}"
+echo -e "${GREEN}  ✓ BusyBox compilado dinámicamente${NC}"
 
 echo -e "${CYAN}[4/5] Instalando BusyBox en initramfs y armando estructura...${NC}"
 rm -rf "$INITRAMFS_DIR"
 mkdir -p "$INITRAMFS_DIR"
 make CONFIG_PREFIX="$INITRAMFS_DIR" install 2>&1 | tail -3
+
+echo -e "${CYAN}[4.1/5] Copiando librerías compartidas necesarias...${NC}"
+for lib in $(LD_LIBRARY_PATH="" ldd busybox | awk '/=>/ {print $(NF-1)}; /ld-linux/ {print $1}' | sort -u); do
+  if [ -n "$lib" ] && [ -f "$lib" ]; then
+    mkdir -p "$INITRAMFS_DIR$(dirname "$lib")"
+    cp -L "$lib" "$INITRAMFS_DIR$(dirname "$lib")/"
+  fi
+done
 
 # Estructura mínima
 mkdir -p "$INITRAMFS_DIR"/{proc,sys,dev,tmp,etc,root,home/student,run}

@@ -42,4 +42,6 @@ exec qemu-system-x86_64 \
   -initrd "$INITRAMFS" \
   -append "console=ttyS0 quiet" \
   -m 512M \
-  -smp 2
+  -smp 2 \
+  -netdev user,id=net0 \
+  -device virtio-net-pci,netdev=net0
