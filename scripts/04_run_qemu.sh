@@ -36,10 +36,10 @@ ${GREEN}════════════════════════
 BANNER
 
 exec qemu-system-x86_64 \
-  -nographic \
-  -no-reboot \
   -kernel "$BZIMAGE" \
   -initrd "$INITRAMFS" \
-  -append "console=ttyS0 quiet" \
+  -append "console=ttyS0 panic=-1" \
+  -nographic \
   -m 512M \
-  -smp 2
+  -netdev user,id=net0 \
+  -device virtio-net-pci,netdev=net0
