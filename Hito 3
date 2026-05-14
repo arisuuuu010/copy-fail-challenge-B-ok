@@ -1,0 +1,16 @@
+=== HITO 3: MITIGACIÓN TEMPORAL ===
+Fecha: Thu May 14 15:31:07 UTC 2026
+Hostname: arisuuuu010
+Kernel: 6.12.0
+Usuario actual: root
+Identidad actual: uid=0(root) gid=1001(student) groups=1001(student)
+
+=== ESTADO DE algif_aead ===
+algif_aead no aparece como módulo cargado
+algif_aead no aparece en /proc/modules
+
+=== INTENTANDO DESCARGAR / DESHABILITAR algif_aead ===
+rmmod: remove 'algif_aead': Function not implemented
+
+Se intentó aplicar la mitigación temporal deshabilitando algif_aead.
+# 
